@@ -150,19 +150,29 @@ def rhs_FR_euler(U, gamma, dx, D, dglb, dgrb, Lm1, Lp1):
     FL_int = flux_euler(UL_int, gamma)                # (K,3)
     FR_int = flux_euler(UR_int, gamma)                # (K,3)
 
+    # Interfaces and states:
+    # - Right face of cell k is the interface (k | k+1).
+    # - UL_R[k] = left state at the right face (taken from cell k, right trace).
+    # - UR_R[k] = right state at the right face (taken from cell k+1, left trace).
+    # - Transmissive BC at the domain ends: use the interior trace of the boundary cell.
+
     # Right faces (k | k+1)
-    UL_R = UR_int.copy()        # Left state at Right face 
-    UR_R = np.empty_like(UL_R)  # Right state at Right face
-    UR_R[:-1] = UL_int[1:]
-    UR_R[-1]  = UR_int[-1]                            # transmissive
+    UL_R = UR_int.copy()        # UL_R[k] := right trace of cell k  (left state at right face k|k+1)
+    UR_R = np.empty_like(UL_R)  # UR_R[k] := right state at right face k|k+1
+    UR_R[:-1] = UL_int[1:]      # for k = 0..K-2: UR_R[k] = left trace of cell k+1
+    UR_R[-1]  = UR_int[-1]      # last face (K-1 | outside): transmissive → use right trace of last cell
     Fstar_R = hllc_flux(UL_R, UR_R, gamma)
 
     # Left faces (k-1 | k)
-    UR_L = UL_int.copy()        # Right state at Left face
-    UL_L = np.empty_like(UR_L)  # Left state at Left face
-    UL_L[1:] = UR_int[:-1]
-    UL_L[0]  = UL_int[0]
+    UR_L = UL_int.copy()        # UR_L[k] := left trace of cell k   (right state at left face k-1|k)
+    UL_L = np.empty_like(UR_L)  # UL_L[k] := left state at left face k-1|k
+    UL_L[1:] = UR_int[:-1]      # for k = 1..K-1: UL_L[k] = right trace of cell k-1
+    UL_L[0]  = UL_int[0]        # first face (outside | 0): transmissive → use left trace of first cell
     Fstar_L = hllc_flux(UL_L, UR_L, gamma)
+
+    # For Periodic Boundary condition 
+    # UR_R[-1] = UL_int[0]        # periodic: right face of last cell uses left trace of cell 0
+    # UL_L[0]  = UR_int[-1]       # periodic: left face of cell 0 uses right trace of last cell
     
     corr_R = (Fstar_R - FR_int)[:, None, :] * dgrb[None, :, None]
     corr_L = (Fstar_L - FL_int)[:, None, :] * dglb[None, :, None]
