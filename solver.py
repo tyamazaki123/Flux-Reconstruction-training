@@ -394,8 +394,8 @@ class SodShockTubeSolver:
             ax = axes.ravel()
 
             def one(ax, y_num, y_ex, title, ylabel):
-                ax.plot(x_plot, y_ex, '-', lw=2, label='Exact')
-                ax.plot(x_plot, y_num, 'o', ms=1.2, label='FR')
+                ax.plot(x_plot, y_ex, '-', lw=2, color='blue', label='Exact')
+                ax.plot(x_plot, y_num, '-', lw=2, color='red', label='FR')
                 ax.set_title(title)
                 ax.set_xlabel('x'); ax.set_ylabel(ylabel)
                 ax.grid(True); ax.legend()
@@ -411,11 +411,11 @@ class SodShockTubeSolver:
             fname = os.path.join(self.results_dir, f"solution_{tag}.pdf")
             fig.savefig(fname)
             pdf_combined.savefig(fig)
-            plt.close(fig)
+p            plt.close(fig)
             return fname
 
         # First snapshot at t=0
-        self.output_snapshot(U0, 0.0, "t0000")
+        output_snapshot(U0, 0.0, "t0000")
 
         # Time integration (SSP-RK3) with adaptive dt
         t = 0.0
