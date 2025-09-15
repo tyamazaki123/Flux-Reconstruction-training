@@ -151,19 +151,19 @@ def rhs_FR_euler(U, gamma, dx, D, dglb, dgrb, Lm1, Lp1):
     FR_int = flux_euler(UR_int, gamma)                # (K,3)
 
     # Right faces (k | k+1)
-    UL_R = UR_int.copy()
-    UR_R = np.empty_like(UL_R)
+    UL_R = UR_int.copy()        # Left state at Right face 
+    UR_R = np.empty_like(UL_R)  # Right state at Right face
     UR_R[:-1] = UL_int[1:]
     UR_R[-1]  = UR_int[-1]                            # transmissive
     Fstar_R = hllc_flux(UL_R, UR_R, gamma)
 
     # Left faces (k-1 | k)
-    UR_L = UL_int.copy()
-    UL_L = np.empty_like(UR_L)
+    UR_L = UL_int.copy()        # Right state at Left face
+    UL_L = np.empty_like(UR_L)  # Left state at Left face
     UL_L[1:] = UR_int[:-1]
     UL_L[0]  = UL_int[0]
     Fstar_L = hllc_flux(UL_L, UR_L, gamma)
-
+    
     corr_R = (Fstar_R - FR_int)[:, None, :] * dgrb[None, :, None]
     corr_L = (Fstar_L - FL_int)[:, None, :] * dglb[None, :, None]
     dUdt   = -(2.0 / dx) * (dF_dxi + corr_R + corr_L)
@@ -411,7 +411,7 @@ class SodShockTubeSolver:
             fname = os.path.join(self.results_dir, f"solution_{tag}.pdf")
             fig.savefig(fname)
             pdf_combined.savefig(fig)
-p            plt.close(fig)
+            plt.close(fig)
             return fname
 
         # First snapshot at t=0
